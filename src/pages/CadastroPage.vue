@@ -5,7 +5,7 @@
         <q-avatar size="40px">
           <img src="/icons/PCPEtransparente.png" />
         </q-avatar>
-        <div class="q-ml-sm text-subtitle1 text-weight-bold text-black">LEGIS-PCPE - CADASTRO</div>
+        <div class="q-ml-sm text-subtitle1 text-weight-bold text-black">Automação de Cadastro</div>
       </div>
 
       <q-form @submit="cadastrar" greedy>
@@ -38,6 +38,7 @@
             <span class="text-black">Matrícula</span>
           </template>
         </q-input>
+
         <q-input
           filled
           v-model="cpf"
@@ -45,7 +46,7 @@
           mask="###.###.###-##"
           unmasked-value
           :rules="[(val) => (val && val.length === 11) || 'CPF deve conter 11 dígitos!']"
-          class="q-mb-md"
+          class="q-mb-sm"
           input-class="text-black"
         >
           <template v-slot:label>
@@ -53,10 +54,27 @@
           </template>
         </q-input>
 
+        <q-select
+          filled
+          v-model="sistema"
+          :options="opcoesSistemas"
+          label="Sistemas"
+          multiple
+          emit-value
+          map-options
+          :rules="[(val) => (val && val.length > 0) || 'Campo Obrigatório!']"
+          class="q-mb-md"
+          popup-content-class="text-black"
+        >
+          <template v-slot:label>
+            <span class="text-black">Sistemas</span>
+          </template>
+        </q-select>
+
         <q-btn label="CADASTRAR" type="submit" class="full-width bg-black text-white q-mb-sm" />
       </q-form>
 
-      <div class="text-caption text-center q-mt-md text-black">Página de Testes</div>
+      <div class="text-caption text-center q-mt-md text-black">Pagina de teste</div>
     </q-card>
   </q-page>
 </template>
@@ -68,10 +86,17 @@ import { useRouter } from 'vue-router'
 const nome = ref('')
 const matricula = ref('')
 const cpf = ref('')
+const sistema = ref([])
+const opcoesSistemas = [
+  { label: 'Infopol', value: 'infopol' },
+  { label: 'SGTI', value: 'sgti' },
+  { label: 'SCPP', value: 'scpp' },
+  { label: 'Legis', value: 'legis' },
+]
 const router = useRouter()
 
 async function cadastrar() {
-  if (nome.value && matricula.value && cpf.value) {
+  if (nome.value && matricula.value && cpf.value && sistema.value) {
     try {
       const response = await fetch('http://localhost:3000/cadastro', {
         method: 'POST',
@@ -80,6 +105,7 @@ async function cadastrar() {
           nome: nome.value,
           matricula: matricula.value,
           cpf: cpf.value,
+          sistema: sistema.value,
         }),
       })
       const data = await response.json()
