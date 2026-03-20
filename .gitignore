@@ -1,0 +1,37 @@
+# --- SEGURANÇA (O MAIS IMPORTANTE) ---
+# Nunca suba suas senhas e chaves de acesso
+.env
+credentials.json
+
+# --- BANCO DE DADOS LOCAL ---
+# Não suba o banco de teste ou arquivos de banco locais
+*.db
+*.sqlite3
+
+# --- PYTHON ---
+# Arquivos temporários que o Python cria sozinho
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# --- NAVEGADOR E DRIVERS ---
+# Logs do Selenium e binários do ChromeDriver
+chromedriver
+geckodriver
+ghostdriver.log
+debug.log
+
+# --- IDEs E EDITOR ---
+# Configurações do VS Code ou PyCharm
+.vscode/
+.idea/
+
+# --- SISTEMA OPERACIONAL ---
+.DS_Store
+Thumbs.db
