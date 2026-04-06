@@ -17,9 +17,7 @@
           class="q-mb-sm"
           input-class="text-black"
         >
-          <template v-slot:label>
-            <span class="text-black">Nome</span>
-          </template>
+          <template v-slot:label><span class="text-black">Nome</span></template>
         </q-input>
 
         <q-input
@@ -27,16 +25,11 @@
           v-model="matricula"
           label="Matrícula"
           @update:model-value="(val) => (matricula = val.replace(/\D/g, ''))"
-          :rules="[
-            (val) => !!val || 'Campo Obrigatório!',
-            (val) => /^\d+$/.test(val) || 'Apenas números permitidos!',
-          ]"
+          :rules="[(val) => !!val || 'Campo Obrigatório!']"
           class="q-mb-sm"
           input-class="text-black"
         >
-          <template v-slot:label>
-            <span class="text-black">Matrícula</span>
-          </template>
+          <template v-slot:label><span class="text-black">Matrícula</span></template>
         </q-input>
 
         <q-input
@@ -45,18 +38,31 @@
           label="CPF"
           mask="###.###.###-##"
           unmasked-value
-          :rules="[(val) => (val && val.length === 11) || 'CPF deve conter 11 dígitos!']"
+          :rules="[(val) => (val && val.length === 11) || 'CPF inválido!']"
           class="q-mb-sm"
           input-class="text-black"
         >
-          <template v-slot:label>
-            <span class="text-black">CPF</span>
-          </template>
+          <template v-slot:label><span class="text-black">CPF</span></template>
         </q-input>
 
         <q-select
           filled
-          v-model="sistema"
+          v-model="unidades"
+          :options="opcoesUnidades"
+          label="Unidades"
+          multiple
+          emit-value
+          map-options
+          :rules="[(val) => (val && val.length > 0) || 'Campo Obrigatório!']"
+          class="q-mb-sm"
+          popup-content-class="text-black"
+        >
+          <template v-slot:label><span class="text-black">Unidades</span></template>
+        </q-select>
+
+        <q-select
+          filled
+          v-model="sistemas"
           :options="opcoesSistemas"
           label="Sistemas"
           multiple
@@ -66,15 +72,11 @@
           class="q-mb-md"
           popup-content-class="text-black"
         >
-          <template v-slot:label>
-            <span class="text-black">Sistemas</span>
-          </template>
+          <template v-slot:label><span class="text-black">Sistemas</span></template>
         </q-select>
 
         <q-btn label="CADASTRAR" type="submit" class="full-width bg-black text-white q-mb-sm" />
       </q-form>
-
-      <div class="text-caption text-center q-mt-md text-black">Pagina de teste</div>
     </q-card>
   </q-page>
 </template>
@@ -86,62 +88,64 @@ import { useRouter } from 'vue-router'
 const nome = ref('')
 const matricula = ref('')
 const cpf = ref('')
-const sistema = ref([])
+const sistemas = ref([])
+const unidades = ref([])
+
 const opcoesSistemas = [
   { label: 'Infopol', value: 'infopol' },
   { label: 'SGTI', value: 'sgti' },
   { label: 'SCPP', value: 'scpp' },
   { label: 'Legis', value: 'legis' },
 ]
+
+const opcoesUnidades = [
+  { label: 'Departamento de Homicídio e Proteção à Pessoa', value: 'dhpp' },
+  { label: 'Academia de Polícia', value: 'acadepol' },
+  { label: 'Central Plantão Capital', value: 'cpc' },
+  { label: 'Comando de Operações e Recurso Especiais', value: 'core' },
+  { label: 'Corregedoria Geral da SDS', value: 'corregedoria_sds' },
+]
+
 const router = useRouter()
 
 async function cadastrar() {
-  if (nome.value && matricula.value && cpf.value && sistema.value) {
-    try {
-      const response = await fetch('http://localhost:3000/cadastro', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nome: nome.value,
-          matricula: matricula.value,
-          cpf: cpf.value,
-          sistema: sistema.value,
-        }),
-      })
-      const data = await response.json()
-      if (response.ok && data.success) {
-        alert('Cadastro realizado com sucesso')
-        router.push('/')
-      } else {
-        alert(data.message || 'Erro ao processar o cadastro')
-      }
-    } catch (err) {
-      alert(`Erro ao conectar ao servidor: ${err.message}`)
+  try {
+    const response = await fetch('http://localhost:3000/cadastro', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nome: nome.value,
+        matricula: matricula.value,
+        cpf: cpf.value,
+        sistemas: sistemas.value,
+        unidades: unidades.value,
+      }),
+    })
+    const data = await response.json()
+    if (response.ok && data.success) {
+      alert('Cadastro realizado com sucesso')
+      router.push('/')
+    } else {
+      alert(data.message || 'Erro no cadastro')
     }
-  } else {
-    alert('Preencha todos os campos corretamente.')
+  } catch (err) {
+    alert(`Erro de conexão: ${err.message}`)
   }
 }
 </script>
 
 <style scoped>
 .bg-login {
-  background-image: url('/Public/icons/PCPEtransparente.png');
+  background-image: url('/icons/PCPEtransparente.png');
   background-size: cover;
   background-position: center;
   min-height: 100vh;
-  backdrop-filter: blur(8px);
 }
-
 .login-card {
   background: rgba(255, 255, 255, 0.8) !important;
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
 }
-
-/* Força o texto a permanecer preto no modo escuro */
 .text-black {
   color: black !important;
 }

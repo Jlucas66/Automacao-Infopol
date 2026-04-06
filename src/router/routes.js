@@ -7,6 +7,7 @@ const routes = [
       { path: 'cadastro', component: () => import('pages/CadastroPage.vue') },
     ],
   },
+
   {
     path: '/:catchAll(.*)*',
     component: () => import('pages/ErrorNotFound.vue'),
