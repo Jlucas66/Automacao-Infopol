@@ -3,7 +3,7 @@
     <q-card class="q-pa-lg login-card" style="width: 450px; max-width: 90vw">
       <div class="row items-center q-mb-md">
         <q-avatar size="40px">
-          <img src="/icons/PCPEtransparente.png" />
+          <img src="/icons/image.png" />
         </q-avatar>
         <div class="q-ml-sm text-subtitle1 text-weight-bold text-black">Automação de Cadastro</div>
       </div>
