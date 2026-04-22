@@ -5,6 +5,13 @@ def criar_banco_teste():
     conn = sqlite3.connect('infopol_teste.db')
     cursor = conn.cursor()
 
+    # Tabela de unidades
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS unidades (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT NOT NULL
+        )
+    ''')
     # Cria a tabela
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS pessoas (
@@ -12,22 +19,36 @@ def criar_banco_teste():
             nome TEXT,
             cpf TEXT,
             data_nasc TEXT,
-            status TEXT DEFAULT 'pendente'
+            status TEXT DEFAULT 'pendente',
+            unidade_id INTEGER,
+            FOREIGN KEY (unidade_id) REFERENCES unidades(id)
         )
     ''')
+
+    # Inserir unidade de teste
+    unidades =[
+        ('DEPARTAMENTO DE HOMICÍDIOS E PROTEÇÃO A PESSOA',),
+        ('ACADEMIA DE POLICIA',),
+        ('CENTRAL DE PLANTOES DA CAPITAL',),
+        ('COMANDO DE OPERAÇÕES E RECURSOS ESPECIAIS',),
+        ('CORREGEDORIA GERAL DA SDS',)
+    ]
+
+    cursor.executemany("INSERT INTO unidades (nome) VALUES (?)", unidades)
 
     # Insere dados de teste
     dados = [
         ('Caique Teste 4', '11122233344', '01/01/1990'),
         ('Caique Teste 3', '55566677788', '15/05/1985'),
-        ('Caique Teste 4', '99900011122', '20/10/1995')
+        ('Caique Teste 4', '99900011122', '20/10/1995'),
+        ('Vamberto', '02714983405', '15/09/1988'),
     ]
 
     cursor.executemany("INSERT INTO pessoas (nome, cpf, data_nasc) VALUES (?, ?, ?)", dados)
     
     conn.commit()
     conn.close()
-    print("✅ Banco de dados SQLite criado com sucesso!")
+    print(" Banco de dados SQLite criado com sucesso!")
 
 if __name__ == "__main__":
     criar_banco_teste()

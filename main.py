@@ -1,60 +1,67 @@
-import os
-import time
-from dotenv import load_dotenv
-from selenium.webdriver.support.ui import WebDriverWait
-import database as db
-import automation as auto
+# main.py
 
-load_dotenv()
+from database import (
+    buscar_pessoa_por_cpf,
+    buscar_unidade_por_id,
+    atualizar_pessoa
+)
 
-def executar_robo():
-    print(" Iniciando Automação Infopol...")
-    
-    # 1. Busca dados no Postgres
-    registros = db.buscar_registros_pendentes()
-    if not registros:
-        print("Nada para cadastrar no momento. Encerrando...")
+from automation import executar_automacao
+
+
+# 🧩 Fluxo principal
+def processar_cadastro(cpf, unidade_id):
+    print("🚀 Iniciando processo...")
+
+    # 1. Buscar pessoa no banco
+    pessoa = buscar_pessoa_por_cpf(cpf)
+
+    if not pessoa:
+        print("❌ CPF não encontrado no banco.")
         return
 
-    # 2. Inicia o Navegador
-    driver = auto.configurar_driver()
-    wait = WebDriverWait(driver, 15)
+    print("✅ Pessoa encontrada!")
+
+    # 2. Buscar unidade
+    unidade = buscar_unidade_por_id(unidade_id)
+
+    if not unidade:
+        print("❌ Unidade não encontrada.")
+        return
+
+    unidade_nome = unidade[1]
+    print(f"🏢 Unidade selecionada: {unidade_nome}")
 
     try:
-        # 3. Login
-        auto.fazer_login(
-            driver, wait, 
-            os.getenv("INFOPOL_USER"), 
-            os.getenv("INFOPOL_PASS"), 
-            os.getenv("INFOPOL_URL")
-        )
-        print(" Login efetuado com sucesso!")
+        # 3. Executar automação
+        sucesso = executar_automacao(cpf, unidade_nome)
 
-        # # 4. Loop de Cadastro
-        # for pessoa in registros:
-        #     id_atual = pessoa[0]
-        #     nome_atual = pessoa[1]
-            
-        #     try:
-        #         print(f" Cadastrando: {nome_atual}...")
-        #         sucesso = auto.realizar_cadastro(driver, wait, pessoa)
-                
-        #         if sucesso:
-        #             db.atualizar_status_no_banco(id_atual, 'concluido')
-        #             print(f" {nome_atual} finalizado!")
-                
-        #         time.sleep(10) # Pausa humana
-                
-        #     except Exception as e:
-        #         print(f"Erro ao cadastrar {nome_atual}: {e}")
-        #         db.atualizar_status_no_banco(id_atual, 'erro')
+        # 🔥 4. Só atualiza se deu certo
+        if sucesso:
+            atualizar_pessoa(cpf, unidade_id)
+            print("🎉 Processo finalizado com sucesso!")
+        else:
+            print("⚠️ Automação falhou. Banco não foi atualizado.")
 
     except Exception as e:
-        print(f" Erro crítico no sistema: {e}")
-    
-    finally:
-        print("Fim do processo. Fechando navegador...")
-        driver.quit()
+        print(f"❌ Erro durante o processo: {e}")
 
+
+# 🚀 Futuro: processamento em lote
+def executar_em_lote():
+    print("🚀 Modo lote ainda não implementado.")
+    print("👉 Aqui você pode buscar registros pendentes no banco.")
+
+
+# 🔥 Entrada do programa
 if __name__ == "__main__":
-    executar_robo()
+    print("=== Automação Infopol ===")
+
+    try:
+        cpf = input("Digite o CPF: ").strip()
+        unidade_id = int(input("Digite o ID da unidade: "))
+
+        processar_cadastro(cpf, unidade_id)
+
+    except ValueError:
+        print("❌ ID da unidade deve ser um número.")
