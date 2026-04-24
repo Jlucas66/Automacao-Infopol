@@ -1,6 +1,6 @@
 import sqlite3
 
-conn = sqlite3.connect('dados_teste.db')
+conn = sqlite3.connect('infopol_teste.db')
 cursor = conn.cursor()
 
 # Criando a tabela de teste

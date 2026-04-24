@@ -1,6 +1,7 @@
 # funcoes_automacao.py
 
 import os
+import time
 from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -219,78 +220,52 @@ def detalhar_usuario(driver, wait):
     print("✅ Na tela de detalhe!")
 
 
-def alterar_unidade(driver, wait, unidade_nome):
-    print(f"🏢 Alterando unidade para: {unidade_nome}")
+def limpar_checkboxes(driver):
+    print("🧹 Limpando checkboxes...")
+
+    checkboxes = driver.find_elements(By.NAME, "chkListaUnidadeOperacional")
+
+    for cb in checkboxes:
+        if cb.is_selected():
+            driver.execute_script("arguments[0].click();", cb)
+
+    print("✅ Limpo!")
+
+
+def selecionar_unidade_por_codigo(driver, wait, codigo):
+    print(f"🎯 Selecionando unidade código: {codigo}")
+
     import time
 
-    # Botão Alterar pode ser <input type="submit"> em sistemas legados
-    estrategias_alterar = [
-        (By.XPATH, "//input[@value='Alterar']"),
-        (By.XPATH, "//button[contains(text(),'Alterar')]"),
-        (By.XPATH, "//*[contains(@onclick,'alterar')]"),
-    ]
-    for est in estrategias_alterar:
-        els = driver.find_elements(*est)
-        if els:
-            driver.execute_script("arguments[0].click();", els[0])
-            print("✅ Clicou em Alterar")
-            break
+    # 🔎 tenta encontrar checkbox pelo value
+    xpath = f"//input[@type='checkbox' and @value='{codigo}']"
 
-    wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+    checkbox = wait.until(
+        EC.presence_of_element_located((By.XPATH, xpath))
+    )
+
+    # rola até ele
+    driver.execute_script("arguments[0].scrollIntoView(true);", checkbox)
+    time.sleep(0.5)
+
+    # marca via JS (mais confiável que click)
+    driver.execute_script("arguments[0].checked = true;", checkbox)
+
+    print("✅ Unidade marcada!")
+
+
+def clicar_gravar(driver, wait):
+    print("💾 Clicando em Gravar...")
+
+    botao = wait.until(
+        EC.presence_of_element_located((By.ID, "botao_gravar"))
+    )
+
+    driver.execute_script("arguments[0].scrollIntoView(true);", botao)
     time.sleep(1)
+    driver.execute_script("arguments[0].click();", botao)
 
-    # Unidade pode ser <select>, <radio>, ou <label> — tenta as três
-    try:
-        select_el = driver.find_element(By.XPATH, "//select[contains(@name,'unidade') or contains(@id,'unidade')]")
-        Select(select_el).select_by_visible_text(unidade_nome)
-        print("✅ Unidade selecionada via <select>")
-    except Exception:
-        try:
-            label = driver.find_element(By.XPATH, f"//label[contains(text(),'{unidade_nome}')]")
-            driver.execute_script("arguments[0].click();", label)
-            print("✅ Unidade selecionada via <label>")
-        except Exception:
-            radio = driver.find_element(By.XPATH, f"//input[@type='radio'][following-sibling::*[contains(text(),'{unidade_nome}')] or @value='{unidade_nome}']")
-            driver.execute_script("arguments[0].click();", radio)
-            print("✅ Unidade selecionada via radio button")
-
-    # Gravar
-    estrategias_gravar = [
-        (By.XPATH, "//input[@value='Gravar']"),
-        (By.XPATH, "//button[contains(text(),'Gravar')]"),
-    ]
-    for est in estrategias_gravar:
-        els = driver.find_elements(*est)
-        if els:
-            driver.execute_script("arguments[0].click();", els[0])
-            print("✅ Gravado!")
-            break
-
-
-# 🏢 Alterar unidade
-def alterar_unidade(driver, wait, unidade_nome):
-    print(f"🏢 Alterando unidade para: {unidade_nome}")
-
-    # 7. Clicar em Alterar
-    botao_alterar = wait.until(
-        EC.element_to_be_clickable((By.XPATH, "//button[contains(text(),'Alterar')]"))
-    )
-    botao_alterar.click()
-
-    # 8. Espera tela carregar
-    wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
-
-    # 9. Selecionar unidade (ajustar conforme HTML real)
-    unidade = wait.until(
-        EC.element_to_be_clickable((By.XPATH, f"//label[contains(text(), '{unidade_nome}')]"))
-    )
-    unidade.click()
-
-    # 10. Gravar
-    botao_gravar = wait.until(
-        EC.element_to_be_clickable((By.XPATH, "//button[contains(text(),'Gravar')]"))
-    )
-    botao_gravar.click()
+    print("✅ Alteração salva!")
 
 
 # 🚪 Logout

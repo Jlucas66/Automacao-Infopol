@@ -1,18 +1,23 @@
 # automation.py
 
+from db import buscar_codigo_unidade
 from selenium import webdriver
+import time
 from selenium.webdriver.support.ui import WebDriverWait
 
 from Funcoes_automacao import (
     clicar_alterar,
+    clicar_gravar,
     fazer_login,
     navegar_para_usuarios,
     preencher_login,
     clicar_buscar,
     clicar_detalhar,
     detalhar_usuario,
-    alterar_unidade,
-    logout
+    # alterar_unidade,
+    limpar_checkboxes,
+    logout,
+    selecionar_unidade_por_codigo
 )
 
 
@@ -43,7 +48,16 @@ def executar_automacao(cpf, unidade_nome):
 
         clicar_alterar(driver, wait)
 
-        alterar_unidade(driver, wait, unidade_nome)
+        codigo = buscar_codigo_unidade(unidade_nome)
+
+        if not codigo:
+            raise Exception(f"Unidade '{unidade_nome}' não encontrada no banco de dados.")
+        
+        limpar_checkboxes(driver)
+
+        selecionar_unidade_por_codigo(driver, wait, codigo)
+
+        clicar_gravar(driver, wait)
 
         logout(driver, wait)
 
