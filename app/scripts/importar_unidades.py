@@ -1,5 +1,5 @@
 import csv
-from db import conectar
+from app.db.db import conectar
 
 def importar_unidades(caminho_csv):
     conn = conectar()

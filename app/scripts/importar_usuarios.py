@@ -1,4 +1,4 @@
-from db import conectar
+from app.db.db import conectar
 
 def inserir_usuarios():
     conn = conectar()

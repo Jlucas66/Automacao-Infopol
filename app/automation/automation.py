@@ -1,11 +1,11 @@
 # automation.py
 
-from db import buscar_codigo_unidade
+from app.db.db import buscar_codigo_unidade
 from selenium import webdriver
 import time
 from selenium.webdriver.support.ui import WebDriverWait
 
-from Funcoes_automacao import (
+from app.automation.Funcoes_automacao import (
     clicar_alterar,
     clicar_gravar,
     fazer_login,

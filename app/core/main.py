@@ -1,12 +1,12 @@
 # main.py
 
-from database import (
+from app.db.database import (
     buscar_pessoa_por_cpf,
     buscar_unidade_por_id,
     atualizar_pessoa
 )
 
-from automation import executar_automacao
+from app.automation.automation import executar_automacao
 
 
 # 🧩 Fluxo principal
