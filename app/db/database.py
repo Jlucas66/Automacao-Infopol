@@ -1,69 +1,101 @@
-import sqlite3
-import os
+from app.db.db import conectar
 
-DB_NAME = 'infopol_teste.db'
 
-def conectar_banco():
-    """Conecta ao arquivo de banco de dados local (SQLite)."""
-    # Isso cria um arquivo chamado 'infopol_teste.db' automaticamente
-    return sqlite3.connect(DB_NAME)
-
-def buscar_registros_pendentes():
-    """Busca dados no arquivo local."""
-    try:
-        conn = conectar_banco()
-        cursor = conn.cursor()
-        # Seleciona os dados da tabela que vamos criar logo abaixo
-        cursor.execute("SELECT id, nome, cpf, data_nasc FROM pessoas WHERE status = 'pendente' LIMIT 5")
-        dados = cursor.fetchall()
-        conn.close()
-        return dados
-    except Exception as e:
-        print(f"Aviso: Tabela ainda não existe. Rode o setup primeiro! Erro: {e}")
-        return []
-    
-
+# =========================
+# USUÁRIOS
+# =========================
 
 def buscar_pessoa_por_cpf(cpf):
-    conn = sqlite3.connect(DB_NAME)
+    conn = conectar()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT * FROM pessoas WHERE cpf = ?", (cpf,))
+    cursor.execute(
+        """
+        SELECT *
+        FROM usuarios
+        WHERE cpf = %s
+        """,
+        (cpf,)
+    )
+
     pessoa = cursor.fetchone()
 
+    cursor.close()
     conn.close()
+
     return pessoa
 
 
-def buscar_unidade_por_id(unidade_id):
-    conn = sqlite3.connect(DB_NAME)
+def atualizar_pessoa(cpf, unidade_id):
+    conn = conectar()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT * FROM unidades WHERE id = ?", (unidade_id,))
+    cursor.execute(
+        """
+        UPDATE usuarios
+        SET id_unidade_operacional = %s
+        WHERE cpf = %s
+        """,
+        (unidade_id, cpf)
+    )
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    print("✅ Usuário atualizado no PostgreSQL!")
+
+
+# =========================
+# UNIDADES
+# =========================
+
+def buscar_unidade_por_id(unidade_id):
+    conn = conectar()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT
+            id_unidade_operacional,
+            nm_unidade_operacional
+        FROM unidades
+        WHERE id_unidade_operacional = %s
+        """,
+        (unidade_id,)
+    )
+
     unidade = cursor.fetchone()
 
+    cursor.close()
     conn.close()
+
     return unidade
 
 
-def atualizar_pessoa(cpf, unidade_id):
-    conn = sqlite3.connect(DB_NAME)
+def buscar_codigo_unidade(nome):
+    conn = conectar()
     cursor = conn.cursor()
 
-    cursor.execute("""
-        UPDATE pessoas
-        SET unidade_id = ?, status = 'concluido'
-        WHERE cpf = ?
-    """, (unidade_id, cpf))
+    cursor.execute(
+        """
+        SELECT id_unidade_operacional
+        FROM unidades
+        WHERE nm_unidade_operacional ILIKE %s
+        LIMIT 1
+        """,
+        (f"%{nome}%",)
+    )
 
-    conn.commit()
+    resultado = cursor.fetchone()
+
+    cursor.close()
     conn.close()
 
-    
-def atualizar_status_no_banco(id_registro, novo_status):
-    """Atualiza o status no arquivo local."""
-    conn = conectar_banco()
-    cursor = conn.cursor()
-    cursor.execute("UPDATE pessoas SET status = ? WHERE id = ?", (novo_status, id_registro))
-    conn.commit()
-    conn.close()
+    if resultado:
+        print(f"🆔 Código encontrado: {resultado[0]}")
+        return resultado[0]
+
+    print(f"❌ Unidade '{nome}' não encontrada no banco")
+    return None

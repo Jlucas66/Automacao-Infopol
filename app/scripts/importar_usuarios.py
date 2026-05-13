@@ -26,3 +26,5 @@ def inserir_usuarios():
 
 if __name__ == "__main__":
     inserir_usuarios()
+
+    

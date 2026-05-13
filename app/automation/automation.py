@@ -1,6 +1,6 @@
 # automation.py
 
-from app.db.db import buscar_codigo_unidade
+from app.db.database import buscar_codigo_unidade
 from selenium import webdriver
 import time
 from selenium.webdriver.support.ui import WebDriverWait
