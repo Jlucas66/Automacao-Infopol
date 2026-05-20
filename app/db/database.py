@@ -99,3 +99,24 @@ def buscar_codigo_unidade(nome):
 
     print(f"❌ Unidade '{nome}' não encontrada no banco")
     return None
+
+def listar_unidades():
+
+    conn = conectar()
+
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
+            id_unidade_operacional,
+            nm_unidade_operacional
+        FROM unidades
+        ORDER BY nm_unidade_operacional
+    """)
+
+    dados = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return dados

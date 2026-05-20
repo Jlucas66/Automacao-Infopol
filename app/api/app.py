@@ -1,12 +1,15 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from pydantic import BaseModel
+
 from app.db.database import (
     buscar_pessoa_por_cpf,
     buscar_unidade_por_id
 )
 
 from app.automation.automation import executar_automacao
+from app.db.database import listar_unidades
 
 app = FastAPI()
 
@@ -80,4 +83,14 @@ def executar(cpf: str, unidade_id: int):
 
     return {
         "sucesso": sucesso
+    }
+
+
+@app.get("/unidades")
+def get_unidades():
+
+    unidades = listar_unidades()
+
+    return {
+        "dados": unidades
     }
