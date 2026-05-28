@@ -1,5 +1,6 @@
 # automation.py
 
+import traceback
 from app.db.database import buscar_codigo_unidade
 from selenium import webdriver
 import time
@@ -27,14 +28,14 @@ def configurar_driver():
     return webdriver.Chrome(options=options)
 
 
-def executar_automacao(cpf, unidade_nome):
+def executar_automacao(cpf, unidade_nome, usuario_infopol, senha_infopol):
     driver = configurar_driver()
     wait = WebDriverWait(driver, 15)
 
     try:
         print("🚀 Iniciando automação...")
 
-        fazer_login(driver, wait)
+        fazer_login(driver, wait, usuario_infopol, senha_infopol)
 
         navegar_para_usuarios(driver, wait)
 
@@ -66,6 +67,9 @@ def executar_automacao(cpf, unidade_nome):
 
     except Exception as e:
         print(f"❌ Erro na automação: {e}")
+        print(type(e).__name__)
+        print(str(e))
+        traceback.print_exc()
         return False
 
     finally:

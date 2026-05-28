@@ -70,7 +70,7 @@ def buscar_unidade(id_unidade: int):
 # =========================
 
 @app.post("/executar")
-def executar(cpf: str, unidade_id: int):
+def executar(cpf: str, unidade_id: int, usuario: str, senha: str):
 
     unidade = buscar_unidade_por_id(unidade_id)
 
@@ -79,7 +79,7 @@ def executar(cpf: str, unidade_id: int):
 
     unidade_nome = unidade[1]
 
-    sucesso = executar_automacao(cpf, unidade_nome)
+    sucesso = executar_automacao(cpf, unidade_nome, usuario, senha)
 
     return {
         "sucesso": sucesso

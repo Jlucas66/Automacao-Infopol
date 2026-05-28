@@ -25,35 +25,37 @@ def selecionar_tabela_usuarios(driver, wait):
     select.select_by_visible_text("Usuários")
 
 
-def fazer_login(driver, wait):
+def fazer_login(driver, wait, usuario, senha):
+
     url = os.getenv("INFOPOL_URL")
-    usuario = os.getenv("INFOPOL_USER")
-    senha = os.getenv("INFOPOL_PASSWORD")
 
     print(f"🌍 Acessando: {url}")
+
     driver.get(url)
 
-    try:
-        wait.until(EC.presence_of_element_located((By.NAME, "usr"))).send_keys(usuario)
-        driver.find_element(By.NAME, "pwd").send_keys(senha)
+    campo_usuario = wait.until(
+        EC.presence_of_element_located((By.NAME, "usr"))
+    )
 
-        print("⌨️ Dados preenchidos.")
+    campo_senha = wait.until(
+        EC.presence_of_element_located((By.NAME, "pwd"))
+    )
 
-        input("👉 Faça login manual (captcha/se necessário) e pressione ENTER...")
+    campo_usuario.clear()
+    campo_usuario.send_keys(usuario)
 
-    except:
-        print("⚠️ Login manual necessário.")
-        input("👉 Faça login e pressione ENTER...")
+    campo_senha.clear()
+    campo_senha.send_keys(senha)
 
-    # 🔥 GARANTE QUE O SISTEMA CARREGOU
-    print("⏳ Aguardando sistema carregar...")
+    campo_senha.send_keys(Keys.ENTER)
+
+    print("🚀 Login automático enviado!")
 
     wait.until(
         EC.presence_of_element_located((By.TAG_NAME, "body"))
     )
 
-    # 👇 DEBUG: veja se carregou algo útil
-    print("✅ Página carregada!")  
+    print("✅ Página carregada!")
 
 
 # 📂 Navegar até a tela de usuários
