@@ -11,6 +11,39 @@ from selenium.webdriver import ActionChains
 
 load_dotenv()
 
+# realiza o login automático no infopol
+def fazer_login(driver, wait, usuario, senha):
+
+    url = os.getenv("INFOPOL_URL")
+
+    print(f"🌍 Acessando: {url}")
+
+    driver.get(url)
+
+    campo_usuario = wait.until(
+        EC.presence_of_element_located((By.NAME, "usr"))
+    )
+
+    campo_senha = wait.until(
+        EC.presence_of_element_located((By.NAME, "pwd"))
+    )
+
+    campo_usuario.clear()
+    campo_usuario.send_keys(usuario)
+
+    campo_senha.clear()
+    campo_senha.send_keys(senha)
+
+    campo_senha.send_keys(Keys.ENTER)
+
+    print("🚀 Login automático enviado!")
+
+    wait.until(
+        EC.presence_of_element_located((By.TAG_NAME, "body"))
+    )
+
+    print("✅ Página carregada!")
+
 #clica na parte para selecionar 'usuário' e abrir a tela base de usuários.
 def selecionar_tabela_usuarios(driver, wait):
     print("📋 Selecionando 'Usuários'...")
