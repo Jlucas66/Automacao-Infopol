@@ -8,8 +8,10 @@ from app.core.models.usuario import Usuario
 class LeitorPlanilha:
 
     @staticmethod
-    def carregar(caminho: str) -> list[Usuario]:
-        print(f"Lendo arquivo: {caminho}")
+    def carregar(
+        caminho: str,
+        cargo: str | None = None
+    ) -> list[Usuario]:
 
         arquivo = Path(caminho)
 
@@ -18,10 +20,20 @@ class LeitorPlanilha:
                 f"Arquivo não encontrado: {caminho}"
             )
 
-        df = pd.read_excel(caminho, sheet_name="Matriculados")
-        df.columns = df.columns.str.strip()  # Remover espaços em branco dos nomes das colunas
-        print("Primeiras ofertas encontradas")
-        print(df["nome_oferta"].head(20))  # Verificar as primeiras linhas do DataFrame
+        df = pd.read_excel(
+            caminho,
+            sheet_name="Matriculados"
+        )
+
+        # Filtra o cargo se informado
+        if cargo:
+            df = df[
+                df["nome_oferta"].str.contains(
+                    cargo,
+                    case=False,
+                    na=False
+                )
+            ]
 
         usuarios = []
 
@@ -29,19 +41,20 @@ class LeitorPlanilha:
 
             usuario = Usuario(
                 nome=str(linha["nome_pessoa"]).strip(),
-                cpf=str(linha["cpf corrigido"]).strip(),
-                email=str(linha["email"]).strip(),
-
-                nome_oferta=(
-                    str(linha["nome_oferta"]).strip()
-                    if pd.notna(linha["nome_oferta"])
-                    else None
+                cpf = (
+                    str(int(linha["cpf corrigido"]))
+                    if pd.notna(linha["cpf corrigido"])
+                    else ""
                 ),
+                email=str(linha["email "]).strip(),
+
+                nome_oferta=str(
+                    linha["nome_oferta"]
+                ).strip(),
 
                 dominio=(
-                    str(linha["DOMINIO"]).strip()
-                    if "DOMINIO" in df.columns
-                    and pd.notna(linha["DOMINIO"])
+                    str(linha["DOMINIO "]).strip()
+                    if pd.notna(linha["DOMINIO "])
                     else None
                 )
             )

@@ -72,11 +72,12 @@ df = pd.read_excel(
     caminho,
     sheet_name="Matriculados")
 
-print(df.columns.tolist())
-
-usuarios = LeitorPlanilha.carregar(caminho)
+usuarios = LeitorPlanilha.carregar(
+    caminho,
+    cargo="Delegado"
+)
 
 # print(f"Usuários encontrados: {len(usuarios)}")
 
-for usuario in usuarios[:5]:
+for usuario in usuarios:
     print(usuario)
