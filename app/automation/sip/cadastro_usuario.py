@@ -63,6 +63,19 @@ class CadastroUsuario:
         campo_nome_social.clear()
         campo_nome_social.send_keys(usuario.nome)
 
+        # ID Origem
+        campo_id_origem = self.driver.find_element(
+            By.ID,
+            "txtIdOrigem"
+        )
+
+        campo_id_origem.clear()
+
+        if usuario.matricula:
+            campo_id_origem.send_keys(
+                usuario.matricula
+            )
+
         # CPF
         campo_cpf = self.driver.find_element(
             By.ID,

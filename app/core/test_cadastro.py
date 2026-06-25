@@ -61,23 +61,35 @@
 #     )
 
 #     print("teste de cadastro concluído!")     
-from app.core.services.leitor_planilha import LeitorPlanilha
-import pandas as pd
-
-caminho = "app/data/ACADEPOL Delegados 14-06.xlsx"
-
-# print(f"Lendo: {caminho}")
-
-df = pd.read_excel(
-    caminho,
-    sheet_name="Matriculados")
-
-usuarios = LeitorPlanilha.carregar(
-    caminho,
-    cargo="Delegado"
+from app.core.services.consolidar_planilhas import (
+    ConsolidadorPlanilhas
 )
 
-# print(f"Usuários encontrados: {len(usuarios)}")
+CAMINHO_ACADEPOL = (
+    "app/data/ACADEPOL Delegados 14-06.xlsx"
+)
 
-for usuario in usuarios:
-    print(usuario)
+CAMINHO_COMPLETA = (
+    "app/data/tabela-completa.xlsx"
+)
+
+df = ConsolidadorPlanilhas.consolidar(
+    CAMINHO_ACADEPOL,
+    CAMINHO_COMPLETA
+)
+
+print("\nColunas encontradas:\n")
+print(df.columns.tolist())
+
+print("\nPrimeiros registros:\n")
+
+colunas = [
+    "nome_pessoa",
+    "cpf corrigido",
+    "email",
+    "sexo",
+    "matricula_nova",
+    "data_admissao",
+]
+
+print(df[colunas].head(20))
