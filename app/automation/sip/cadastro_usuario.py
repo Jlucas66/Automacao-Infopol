@@ -93,8 +93,33 @@ class CadastroUsuario:
         campo_email.send_keys(usuario.email)
 
     def salvar(self):
+        from selenium.webdriver.common.by import By
+        from selenium.webdriver.support.ui import WebDriverWait
+        from selenium.webdriver.support import expected_conditions as EC
 
-        self.driver.find_element(
-            By.NAME,
-            "sbmCadastrarUsuario"
-        ).click()
+        wait = WebDriverWait(self.driver, 15)
+
+        # Localiza o botão
+        botao = wait.until(
+            EC.presence_of_element_located((By.NAME, "sbmCadastrarUsuario"))
+        )
+
+        # Garante que está visível na tela
+        self.driver.execute_script(
+           "arguments[0].scrollIntoView({block: 'center'});",
+            botao
+        )
+
+        # Espera estar clicável de verdade
+        wait.until(
+            EC.element_to_be_clickable((By.NAME, "sbmCadastrarUsuario"))
+        )
+
+        # Pequena pausa para o JS do sistema terminar validações internas
+        wait.until(lambda d: botao.is_enabled() and botao.is_displayed())
+
+        # Clique mais “forçado” (mais confiável que click normal)
+        self.driver.execute_script(
+            "arguments[0].click();",
+           botao
+        )

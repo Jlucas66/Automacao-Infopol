@@ -73,13 +73,6 @@ def main():
         gerar_sigla(delegado.email)
     )
 
-    # input(
-    #     "\nConfira a permissão preenchida e pressione ENTER."
-    # )
-
-    # Quando validar que está tudo certo,
-    # basta remover o comentário abaixo:
-
     permissao.salvar()
 
     driver.quit()

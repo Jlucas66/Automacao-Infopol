@@ -43,11 +43,13 @@ class PermissaoUsuario:
         # ==========================
         # SISTEMA
         # ==========================
+        # SISTEMA
+        # ==========================
         campo_sistema = self.wait.until(
             EC.visibility_of_element_located(
-                (By.ID, "selSistema")
-            )
-        )
+        (By.ID, "selSistema")
+    )
+)
 
         self.wait.until(
             lambda d: any(
@@ -60,6 +62,16 @@ class PermissaoUsuario:
 
         Select(campo_sistema).select_by_visible_text(
             "SEI"
+        )   
+
+        Select(
+            campo_sistema
+        ).select_by_visible_text(
+            "SEI"
+        )
+
+        self.driver.execute_script(
+            "trocarSistema();"
         )
 
         time.sleep(2)
@@ -118,22 +130,14 @@ class PermissaoUsuario:
         # ==========================
         # PERFIL
         # ==========================
-
-        select_perfil = Select(
+        Select(
             self.driver.find_element(
-              By.ID,
-             "selPerfil"
+                By.ID,
+                "selPerfil"
             )
+        ).select_by_visible_text(
+            "Básico"
         )
-
-        for opcao in select_perfil.options:
-
-            texto = opcao.text.strip()
-
-            if texto == "Básico":
-
-               opcao.click()
-               break
 
         # ==========================
         # USUÁRIO
