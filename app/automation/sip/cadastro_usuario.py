@@ -55,13 +55,13 @@ class CadastroUsuario:
         campo_nome.clear()
         campo_nome.send_keys(usuario.nome)
 
-        # nome social
-        campo_nome_social = self.driver.find_element(
-            By.ID,
-            "txtNomeSocial"
-        )
-        campo_nome_social.clear()
-        campo_nome_social.send_keys(usuario.nome)
+        # # nome social
+        # campo_nome_social = self.driver.find_element(
+        #     By.ID,
+        #     "txtNomeSocial"
+        # )
+        # campo_nome_social.clear()
+        # campo_nome_social.send_keys(usuario.nome)
 
         # ID Origem
         campo_id_origem = self.driver.find_element(
@@ -93,48 +93,34 @@ class CadastroUsuario:
         campo_email.send_keys(usuario.email)
 
     def salvar(self):
-        from selenium.webdriver.common.by import By
-        from selenium.webdriver.support.ui import WebDriverWait
-        from selenium.webdriver.support import expected_conditions as EC
-        import time
+            from selenium.webdriver.common.alert import Alert
+            import time
 
-        wait = WebDriverWait(self.driver, 15)
+            url_antes = self.driver.current_url
 
-        # 1. Captura a URL atual para detectar mudança após submit
-        url_antes = self.driver.current_url
+            botao = self.wait.until(
+                EC.element_to_be_clickable((By.NAME, "sbmCadastrarUsuario"))
+            )
+            self.driver.execute_script(
+                "arguments[0].scrollIntoView({block: 'center'});", botao
+            )
+            botao.click()
+            time.sleep(1)
 
-        # 2. Localiza e rola até o botão
-        botao = wait.until(
-            EC.presence_of_element_located((By.NAME, "sbmCadastrarUsuario"))
-        )
-        self.driver.execute_script(
-         "arguments[0].scrollIntoView({block: 'center'});", botao
-        )
-
-        # 3. Aguarda clicável e usa clique REAL do Selenium (não JS)
-        botao = wait.until(
-            EC.element_to_be_clickable((By.NAME, "sbmCadastrarUsuario"))
-        )
-        botao.click()  # clique nativo — dispara todos os eventos JS/DOM
-
-        # 4. Aguarda confirmação real: mudança de URL ou elemento de sucesso
-        try:
-            wait.until(EC.url_changes(url_antes))
-            print("[OK] Cadastro realizado - página redirecionada.")
-        except:
-            # Se não redireciona, pode aparecer mensagem de sucesso na mesma página
+            # Verifica alert JS
             try:
-                mensagem = wait.until(
-                    EC.presence_of_element_located(
-                        (By.CSS_SELECTOR, ".mensagem-sucesso, .alert-success, #msgSucesso")
-                    )
-                )
-                print(f"[OK] Cadastro realizado - mensagem: {mensagem.text}")
+                alert = Alert(self.driver)
+                mensagem_alert = alert.text
+                alert.accept()
+                raise Exception(f"[ERRO] Sistema bloqueou o cadastro: '{mensagem_alert}'")
+            except Exception as e:
+                if "[ERRO]" in str(e):
+                    raise
+
+            # Verifica redirecionamento
+            try:
+                self.wait.until(EC.url_changes(url_antes))
+                print("[OK] Cadastro realizado - página redirecionada.")
             except:
-                # Nenhuma confirmação detectada — loga o estado atual para debug
-                print("[ERRO] Nenhuma confirmação de cadastro detectada.")
-                print(f"URL atual: {self.driver.current_url}")
-                print(f"Título da página: {self.driver.title}")
-                # Captura screenshot para inspeção manual
-                self.driver.save_screenshot("erro_salvar.png")
-                raise Exception("Salvar não confirmado — verifique erro_salvar.png")
+                self.driver.save_screenshot("erro_salvar_usuario.png")
+                raise Exception("Cadastro não confirmado — verifique erro_salvar_usuario.png")
