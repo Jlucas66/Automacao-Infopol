@@ -13,3 +13,4 @@ class Usuario:
 
     sexo: str | None = None
     matricula: str | None = None
+    cargo: str | None = None  

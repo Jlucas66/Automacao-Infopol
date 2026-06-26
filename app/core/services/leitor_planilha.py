@@ -21,17 +21,16 @@ class LeitorPlanilha:
                 f"Arquivo não encontrado: {caminho}"
             )
 
-        # df = pd.read_excel(
-        #     caminho,
-        #     sheet_name="Matriculados"
-        # )
         df = ConsolidadorPlanilhas.consolidar(
             caminho_acadepol=caminho,
             caminho_completa="app/data/tabela-completa.xlsx"
         )
-        print(df.columns.tolist())
 
-        # Filtra o cargo se informado
+        # Normaliza coluna de cargo — pode vir como "nome_oferta" ou "cargo"
+        if "cargo" in df.columns and "nome_oferta" not in df.columns:
+            df = df.rename(columns={"cargo": "nome_oferta"})
+
+        # Filtra pelo cargo se informado
         if cargo:
             df = df[
                 df["nome_oferta"].str.contains(
@@ -47,7 +46,7 @@ class LeitorPlanilha:
 
             usuario = Usuario(
                 nome=str(linha["nome_pessoa"]).strip(),
-                cpf = (
+                cpf=(
                     str(int(linha["cpf corrigido"]))
                     if pd.notna(linha["cpf corrigido"])
                     else ""
@@ -56,7 +55,7 @@ class LeitorPlanilha:
 
                 nome_oferta=str(
                     linha["nome_oferta"]
-                ).strip(),
+                ).strip() if pd.notna(linha["nome_oferta"]) else None,
 
                 dominio=(
                     str(linha["dominio"]).strip()
@@ -74,9 +73,14 @@ class LeitorPlanilha:
                     str(linha["matricula_nova"]).strip()
                     if pd.notna(linha["matricula_nova"])
                     else None
+                ),
+
+                cargo=(
+                    str(linha["nome_oferta"]).strip()
+                    if pd.notna(linha["nome_oferta"])
+                    else None
                 )
             )
-            print(usuario)
 
             usuarios.append(usuario)
 
