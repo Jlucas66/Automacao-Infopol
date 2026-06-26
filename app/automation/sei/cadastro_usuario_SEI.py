@@ -5,6 +5,8 @@ from selenium.webdriver.common.alert import Alert
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.alert import Alert
+from selenium.common.exceptions import NoAlertPresentException
 
 
 class CadastroUsuarioSei:
@@ -17,6 +19,7 @@ class CadastroUsuarioSei:
     # MENU
     # =====================================================
     def abrir_listar_usuarios(self):
+        self.driver.switch_to.default_content()
 
         self.wait.until(
             EC.element_to_be_clickable(
@@ -46,6 +49,7 @@ class CadastroUsuarioSei:
     # PESQUISAR USUÁRIO
     # =====================================================
     def pesquisar_usuario(self, sigla):
+        self.driver.switch_to.default_content()
 
         campo = self.wait.until(
             EC.visibility_of_element_located(
@@ -75,15 +79,48 @@ class CadastroUsuarioSei:
     # =====================================================
     # ABRIR BOX DO CONTATO
     # =====================================================
+    # def abrir_alterar_contato(self):
+
+    #     self.wait.until(
+    #         EC.element_to_be_clickable(
+    #             (By.ID, "imgAlterarContato")
+    #         )
+    #     ).click()
+
+    #     time.sleep(2)
+
     def abrir_alterar_contato(self):
 
-        self.wait.until(
-            EC.element_to_be_clickable(
-                (By.ID, "imgAlterarContato")
-            )
-        ).click()
+            print("Clicando em alterar contato...")
 
-        time.sleep(2)
+            # Clica no ícone de alterar contato
+            self.wait.until(
+                EC.element_to_be_clickable(
+                    (By.ID, "imgAlterarContato")
+                )
+            ).click()
+
+            print("Clique realizado.")
+
+            # Aguarda o iframe do modal aparecer e entra nele
+            self.wait.until(
+                EC.frame_to_be_available_and_switch_to_it(
+                    (By.CSS_SELECTOR, "iframe[id^='modal-frame']")
+                )
+            )
+
+            print("Entrou no iframe do modal.")
+
+            # Apenas para conferência
+            print(
+                "Existe lblFeminino?",
+                len(self.driver.find_elements(By.ID, "lblFeminino"))
+            )
+
+            print(
+                "Existe selCargo?",
+                len(self.driver.find_elements(By.ID, "selCargo"))
+            )
 
     # =====================================================
     # PREENCHER DADOS
@@ -114,18 +151,27 @@ class CadastroUsuarioSei:
         # -------------------------
 
         cargo_usuario = usuario.cargo.upper()
+        sexo = usuario.sexo.upper()
 
         if "DELEGADO" in cargo_usuario:
 
-            cargo_sei = "Delegado de Polícia Civil"
+            if sexo == "F":
+                valor_cargo = "888"      # Delegada
+
+            else:
+                valor_cargo = "14"       # Delegado
 
         elif "ESCRIV" in cargo_usuario:
 
-            cargo_sei = "Escrivão de Polícia"
+            if sexo == "F":
+                valor_cargo = "555"      # Escrivã
+
+            else:
+                valor_cargo = "554"      # Escrivão
 
         elif "AGENTE" in cargo_usuario:
 
-            cargo_sei = "Agente de Polícia"
+            valor_cargo = "545"          # Agente (o modal só mostrou esse)
 
         else:
 
@@ -134,14 +180,19 @@ class CadastroUsuarioSei:
             )
 
         select_cargo = self.wait.until(
-            EC.visibility_of_element_located(
+            EC.presence_of_element_located(
                 (By.ID, "selCargo")
             )
         )
 
-        Select(select_cargo).select_by_visible_text(
-            cargo_sei
-        )
+        print("Opções disponíveis:")
+
+        # for op in Select(select_cargo).options:
+        #     print(op.get_attribute("value"), "->", op.text)
+
+        Select(select_cargo).select_by_value(valor_cargo)
+
+        print(f"[OK] Cargo selecionado (valor={valor_cargo})")
 
         time.sleep(2)
 
@@ -162,6 +213,9 @@ class CadastroUsuarioSei:
         botao_salvar1.click()
 
         time.sleep(2)
+
+        # Volta para a página principal
+        self.driver.switch_to.default_content()
 
         # Verifica se apareceu algum Alert
         try:
@@ -194,6 +248,7 @@ class CadastroUsuarioSei:
             self.wait.until(
                 EC.url_changes(url_antes)
             )
+            self.driver.switch_to.default_content()
 
             print("[OK] Cadastro no SEI finalizado.")
 

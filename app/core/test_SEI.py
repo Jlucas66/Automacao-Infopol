@@ -2,13 +2,25 @@ from selenium import webdriver
 
 from app.core import config
 from app.core.services.leitor_planilha import LeitorPlanilha
-from app.automation.sei.utils import gerar_sigla
 
 from app.automation.sei.login_SEI import LoginSei
 from app.automation.sei.cadastro_usuario_SEI import CadastroUsuarioSei
+from app.automation.sei.utils import gerar_sigla
+
+
+CAMINHO = "app/data/ACADEPOL Delegados 14-06.xlsx"
 
 
 def main():
+
+    usuarios = LeitorPlanilha.carregar(
+        caminho=CAMINHO,
+        cargo="Delegado"
+    )
+
+    if not usuarios:
+        print("Nenhum usuário encontrado.")
+        return
 
     driver = webdriver.Chrome()
 
@@ -26,50 +38,47 @@ def main():
         senha=config.SIP_SENHA
     )
 
-    # =====================================
-    # CARREGA APENAS A PLANILHA DE DELEGADOS
-    # =====================================
-    caminho = "app/data/ACADEPOL Delegados 14-06.xlsx"
-
-    usuarios = LeitorPlanilha.carregar(
-        caminho=caminho,
-        cargo="Delegado"
-    )
-
-    if not usuarios:
-        print("Nenhum usuário encontrado.")
-        driver.quit()
-        return
-
-    # Apenas o primeiro usuário
-    usuario = usuarios[0]
-
-    print(f"Testando usuário: {usuario.nome}")
-
     cadastro = CadastroUsuarioSei(driver)
 
-    cadastro.abrir_listar_usuarios()
+    # =====================================
+    # LOOP DA PLANILHA
+    # =====================================
+    for i, usuario in enumerate(usuarios):
 
-    cadastro.pesquisar_usuario(
-        gerar_sigla(usuario.email)
-    )
+        print(f"\n[{i+1}/{len(usuarios)}] Processando: {usuario.nome}")
 
-    cadastro.abrir_alterar_contato()
+        try:
 
-    print(usuario.nome)
-    print("Sexo:", usuario.sexo)
-    print("Cargo:", usuario.cargo)
-    print("Email:", usuario.email)
+            # Sempre volta para a tela de pesquisa
+            cadastro.abrir_listar_usuarios()
 
-    cadastro.preencher(usuario)
+            cadastro.pesquisar_usuario(
+                gerar_sigla(usuario.email)
+            )
 
-    cadastro.salvar()
+            cadastro.abrir_alterar_contato()
 
-    print(f"[OK] Cadastro realizado para {usuario.nome}")
+            cadastro.preencher(usuario)
 
-    input("Pressione ENTER para fechar...")
+            cadastro.salvar()
+
+            print(f"[OK] {usuario.nome} atualizado com sucesso.")
+
+        except Exception as e:
+
+            print(f"[ERRO] {usuario.nome}: {e}")
+
+            # Fecha eventual alerta do SEI
+            try:
+                driver.switch_to.alert.accept()
+            except Exception:
+                pass
+
+            continue
 
     driver.quit()
+
+    print("\nProcessamento finalizado.")
 
 
 if __name__ == "__main__":
