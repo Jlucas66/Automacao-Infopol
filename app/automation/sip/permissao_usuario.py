@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
 
 
 class PermissaoUsuario:
@@ -40,8 +41,6 @@ class PermissaoUsuario:
         sigla_usuario
     ):
 
-        # ==========================
-        # SISTEMA
         # ==========================
         # SISTEMA
         # ==========================
@@ -130,33 +129,67 @@ class PermissaoUsuario:
         # ==========================
         # PERFIL
         # ==========================
-        Select(
-            self.driver.find_element(
-                By.ID,
-                "selPerfil"
+        self.wait.until(
+            lambda d: any(
+                opcao.text.strip() == "Básico"
+                for opcao in Select(
+                    d.find_element(By.ID, "selPerfil")
+                ).options
             )
-        ).select_by_visible_text(
-            "Básico"
         )
+
+        Select(
+            self.driver.find_element(By.ID, "selPerfil")
+        ).select_by_visible_text("Básico")
 
         # ==========================
         # USUÁRIO
         # ==========================
-        campo_usuario = self.driver.find_element(
-            By.ID,
-            "txtUsuario"
-        )
-
+        campo_usuario = self.driver.find_element(By.ID, "txtUsuario")
         campo_usuario.clear()
+        campo_usuario.send_keys(sigla_usuario)
 
-        campo_usuario.send_keys(
-            sigla_usuario
+        # Aguarda o item aparecer no dropdown (tag <a> com a sigla)
+        self.wait.until(
+            EC.presence_of_element_located(
+                (By.XPATH, f"//a[contains(text(), '{sigla_usuario}')]")
+            )
         )
+
+        # Enter seleciona o primeiro item do dropdown
+        campo_usuario.send_keys(Keys.RETURN)
+        time.sleep(1)
+
+        # Confirma seleção
+        label_nome = self.driver.find_element(By.ID, "lblNomeUsuario")
+        print(f"[OK] Usuário selecionado: {label_nome.text.strip()}")
 
     def salvar(self):
+        url_antes = self.driver.current_url
 
-        self.wait.until(
-            EC.element_to_be_clickable(
-                (By.NAME, "sbmCadastrarPermissao")
-            )
-        ).click()
+        botao = self.wait.until(
+            EC.element_to_be_clickable((By.NAME, "sbmCadastrarPermissao"))
+        )
+        self.driver.execute_script(
+            "arguments[0].scrollIntoView({block: 'center'});", botao
+        )
+        botao.click()  # clique nativo
+
+        # Aguarda confirmação
+        try:
+            self.wait.until(EC.url_changes(url_antes))
+            print("[OK] Permissão salva - página redirecionada.")
+        except:
+            try:
+                mensagem = self.wait.until(
+                    EC.presence_of_element_located(
+                        (By.CSS_SELECTOR, ".mensagem-sucesso, .alert-success, #msgSucesso")
+                    )
+                )
+
+                print(f"[OK] Permissão salva - mensagem: {mensagem.text}")
+            except:
+                print("[ERRO] Nenhuma confirmação de permissão detectada.")
+                print(f"URL atual: {self.driver.current_url}")
+                self.driver.save_screenshot("erro_salvar_permissao.png")
+                raise Exception("Salvar permissão não confirmado — verifique erro_salvar_permissao.png")

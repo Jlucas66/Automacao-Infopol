@@ -96,30 +96,45 @@ class CadastroUsuario:
         from selenium.webdriver.common.by import By
         from selenium.webdriver.support.ui import WebDriverWait
         from selenium.webdriver.support import expected_conditions as EC
+        import time
 
         wait = WebDriverWait(self.driver, 15)
 
-        # Localiza o botão
+        # 1. Captura a URL atual para detectar mudança após submit
+        url_antes = self.driver.current_url
+
+        # 2. Localiza e rola até o botão
         botao = wait.until(
             EC.presence_of_element_located((By.NAME, "sbmCadastrarUsuario"))
         )
-
-        # Garante que está visível na tela
         self.driver.execute_script(
-           "arguments[0].scrollIntoView({block: 'center'});",
-            botao
+         "arguments[0].scrollIntoView({block: 'center'});", botao
         )
 
-        # Espera estar clicável de verdade
-        wait.until(
+        # 3. Aguarda clicável e usa clique REAL do Selenium (não JS)
+        botao = wait.until(
             EC.element_to_be_clickable((By.NAME, "sbmCadastrarUsuario"))
         )
+        botao.click()  # clique nativo — dispara todos os eventos JS/DOM
 
-        # Pequena pausa para o JS do sistema terminar validações internas
-        wait.until(lambda d: botao.is_enabled() and botao.is_displayed())
-
-        # Clique mais “forçado” (mais confiável que click normal)
-        self.driver.execute_script(
-            "arguments[0].click();",
-           botao
-        )
+        # 4. Aguarda confirmação real: mudança de URL ou elemento de sucesso
+        try:
+            wait.until(EC.url_changes(url_antes))
+            print("[OK] Cadastro realizado - página redirecionada.")
+        except:
+            # Se não redireciona, pode aparecer mensagem de sucesso na mesma página
+            try:
+                mensagem = wait.until(
+                    EC.presence_of_element_located(
+                        (By.CSS_SELECTOR, ".mensagem-sucesso, .alert-success, #msgSucesso")
+                    )
+                )
+                print(f"[OK] Cadastro realizado - mensagem: {mensagem.text}")
+            except:
+                # Nenhuma confirmação detectada — loga o estado atual para debug
+                print("[ERRO] Nenhuma confirmação de cadastro detectada.")
+                print(f"URL atual: {self.driver.current_url}")
+                print(f"Título da página: {self.driver.title}")
+                # Captura screenshot para inspeção manual
+                self.driver.save_screenshot("erro_salvar.png")
+                raise Exception("Salvar não confirmado — verifique erro_salvar.png")
