@@ -8,14 +8,14 @@ from app.automation.sei.cadastro_usuario_SEI import CadastroUsuarioSei
 from app.automation.sei.utils import gerar_sigla
 
 
-CAMINHO = "app/data/ACADEPOL Delegados 14-06.xlsx"
+CAMINHO = "app/data/AGENTES_NOVA_SENHA.xlsx"
 
 
 def main():
 
     usuarios = LeitorPlanilha.carregar(
         caminho=CAMINHO,
-        cargo="Delegado"
+        cargo="Agente"
     )
 
     if not usuarios:
@@ -38,7 +38,6 @@ def main():
         senha=config.SIP_SENHA
     )
 
-    cadastro = CadastroUsuarioSei(driver)
 
     # =====================================
     # LOOP DA PLANILHA
@@ -48,6 +47,7 @@ def main():
         print(f"\n[{i+1}/{len(usuarios)}] Processando: {usuario.nome}")
 
         try:
+            cadastro = CadastroUsuarioSei(driver)
 
             # Sempre volta para a tela de pesquisa
             cadastro.abrir_listar_usuarios()
@@ -66,18 +66,50 @@ def main():
 
         except Exception as e:
 
-            print(f"[ERRO] {usuario.nome}: {e}")
+            import traceback
 
-            # Fecha eventual alerta do SEI
+            print("\n" + "=" * 80)
+            print(f"[ERRO] Falha ao processar: {usuario.nome}")
+            print(f"Tipo da exceção: {type(e).__name__}")
+            print(f"Mensagem: {repr(e)}")
+            print("\nTraceback completo:")
+            traceback.print_exc()
+            print("=" * 80 + "\n")
+
+            # Fecha alerta, se existir
             try:
                 driver.switch_to.alert.accept()
+                print("[INFO] Alerta fechado.")
             except Exception:
                 pass
 
+            # Sai do iframe, se estiver dentro
+            try:
+                driver.switch_to.default_content()
+                print("[INFO] Voltou para o conteúdo principal.")
+            except Exception:
+                pass
+
+            # Fecha modal com ESC, se possível
+            try:
+                from selenium.webdriver.common.by import By
+                from selenium.webdriver.common.keys import Keys
+
+                driver.find_element(By.TAG_NAME, "body").send_keys(Keys.ESCAPE)
+                print("[INFO] Modal fechado com ESC.")
+            except Exception:
+                pass
+
+            # Recarrega a página para continuar o processamento
+            try:
+                driver.refresh()
+                print("[INFO] Página recarregada.")
+            except Exception:
+                pass
+
+            cadastro = CadastroUsuarioSei(driver)
+
             continue
-
-    driver.quit()
-
     print("\nProcessamento finalizado.")
 
 

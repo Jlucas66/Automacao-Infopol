@@ -26,14 +26,29 @@ class LeitorPlanilha:
             caminho_completa="app/data/tabela-completa.xlsx"
         )
 
-        # Normaliza coluna de cargo — pode vir como "nome_oferta" ou "cargo"
+        # Padroniza os nomes das colunas
+        df.columns = (
+            df.columns
+            .str.strip()
+            .str.lower()
+        )
+
+        # Algumas planilhas usam "cargo"
         if "cargo" in df.columns and "nome_oferta" not in df.columns:
             df = df.rename(columns={"cargo": "nome_oferta"})
 
-        # Filtra pelo cargo se informado
+        # Algumas planilhas usam "e-mail"
+        if "e-mail" in df.columns and "email" not in df.columns:
+            df = df.rename(columns={"e-mail": "email"})
+
+        # Algumas planilhas usam "domínio"
+        if "domínio" in df.columns and "dominio" not in df.columns:
+            df = df.rename(columns={"domínio": "dominio"})
+
+        # Filtra o cargo solicitado
         if cargo:
             df = df[
-                df["nome_oferta"].str.contains(
+                df["nome_oferta"].astype(str).str.contains(
                     cargo,
                     case=False,
                     na=False
@@ -44,40 +59,50 @@ class LeitorPlanilha:
 
         for _, linha in df.iterrows():
 
-            usuario = Usuario(
-                nome=str(linha["nome_pessoa"]).strip(),
-                cpf=(
-                    str(int(linha["cpf corrigido"]))
-                    if pd.notna(linha["cpf corrigido"])
-                    else ""
-                ),
-                email=str(linha["email"]).strip(),
+            cpf = ""
 
-                nome_oferta=str(
-                    linha["nome_oferta"]
-                ).strip() if pd.notna(linha["nome_oferta"]) else None,
+            if "cpf" in df.columns and pd.notna(linha["cpf"]):
+                try:
+                    cpf = str(int(float(linha["cpf"])))
+                except Exception:
+                    cpf = str(linha["cpf"]).strip()
+
+            usuario = Usuario(
+                nome=str(linha.get("nome_pessoa", "")).strip(),
+
+                cpf=cpf,
+
+                email=str(
+                    linha.get("email", "")
+                ).strip(),
+
+                nome_oferta=(
+                    str(linha.get("nome_oferta", "")).strip()
+                    if pd.notna(linha.get("nome_oferta"))
+                    else None
+                ),
 
                 dominio=(
-                    str(linha["dominio"]).strip()
-                    if pd.notna(linha["dominio"])
+                    str(linha.get("dominio", "")).strip()
+                    if pd.notna(linha.get("dominio"))
                     else None
                 ),
 
                 sexo=(
-                    str(linha["sexo"]).strip()
-                    if pd.notna(linha["sexo"])
+                    str(linha.get("sexo", "")).strip()
+                    if pd.notna(linha.get("sexo"))
                     else None
                 ),
 
                 matricula=(
-                    str(linha["matricula_nova"]).strip()
-                    if pd.notna(linha["matricula_nova"])
+                    str(linha.get("matricula_nova", "")).strip()
+                    if pd.notna(linha.get("matricula_nova"))
                     else None
                 ),
 
                 cargo=(
-                    str(linha["nome_oferta"]).strip()
-                    if pd.notna(linha["nome_oferta"])
+                    str(linha.get("nome_oferta", "")).strip()
+                    if pd.notna(linha.get("nome_oferta"))
                     else None
                 )
             )
